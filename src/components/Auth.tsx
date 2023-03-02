@@ -9,6 +9,7 @@ import {
   CssBaseline,
   FormControlLabel,
   Grid,
+  IconButton,
   Link,
   Paper,
   TextField,
@@ -16,6 +17,7 @@ import {
 } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import EmailIcon from '@mui/icons-material/Email'
 import { auth, provider, storage } from '../firebase'
 import { useState } from 'react'
@@ -28,7 +30,7 @@ const Auth = () => {
   const dispatch = useDispatch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [userName, setUserName] = useState('')
+  const [username, setUsername] = useState('')
   const [avaterImage, setAvaterImage] = useState<File | null>(null)
   const [isLogin, setIsLogin] = useState(true)
 
@@ -64,12 +66,12 @@ const Auth = () => {
       url = await storage.ref('avatars').child(fileName).getDownloadURL()
     }
     await authUser.user?.updateProfile({
-      displayName: userName,
+      displayName: username,
       photoURL: url,
     })
     dispatch(
       updateUserProfile({
-        displayName: userName,
+        displayName: username,
         photoUrl: url,
       }),
     )
@@ -125,6 +127,45 @@ const Auth = () => {
               noValidate
               onSubmit={handleSubmit}
               sx={{ mt: 1 }}>
+              {!isLogin && (
+                <>
+                  <TextField
+                    variant='outlined'
+                    margin='normal'
+                    required
+                    fullWidth
+                    id='username'
+                    label='username'
+                    name='username'
+                    autoComplete='username'
+                    autoFocus
+                    value={username}
+                    onChange={e => {
+                      setUsername(e.target.value)
+                    }}
+                  />
+                  <Box textAlign='center'>
+                    <IconButton>
+                      <label>
+                        <AccountCircleIcon
+                          fontSize='large'
+                          className={
+                            avaterImage
+                              ? styles.login_addIconLoaded
+                              : styles.login_addIcon
+                          }
+                        />
+                        <input
+                          className={styles.login_hiddenIcon}
+                          type='file'
+                          onChange={onChangeImageHandler}
+                        />
+                      </label>
+                    </IconButton>
+                  </Box>
+                </>
+              )}
+
               <TextField
                 margin='normal'
                 required
@@ -150,6 +191,11 @@ const Auth = () => {
                 onChange={e => setPassword(e.target.value)}
               />
               <Button
+                disabled={
+                  isLogin
+                    ? !email || password.length < 6
+                    : !username || !email || password.length < 6 || !avaterImage
+                }
                 fullWidth
                 variant='contained'
                 color='primary'
