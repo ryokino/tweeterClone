@@ -17,45 +17,62 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import EmailIcon from '@mui/icons-material/Email'
-import { auth, provider } from '../firebase'
+import { auth, provider, storage } from '../firebase'
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { updateUserProfile } from '../features/userSlice'
 
 const theme = createTheme()
 
 const Auth = () => {
-  /* Here is the explanation for the code above:
-1. The auth library is imported from firebase. 
-2. signInWithPopup is a method from the auth library. 
-3. It takes in "provider" as a parameter. 
-4. Provider is a variable that holds the GoogleAuthProvider from firebase. 
-5. The GoogleAuthProvider is a class that is imported from firebase. 
-6. The GoogleAuthProvider is a class that has the sign in method from Google. 
-7. The signInWithPopup method is what allows the user to sign in with a popup window. 
-8. The catch method is there to catch any errors that might occur. 
-9. If an error occurs, it will alert the error message. */
+  const dispatch = useDispatch()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [userName, setUserName] = useState('')
+  const [avaterImage, setAvaterImage] = useState<File | null>(null)
+  const [isLogin, setIsLogin] = useState(true)
+
   const signInGoogle = async () => {
     await auth.signInWithPopup(provider).catch(err => alert(err.message))
   }
-  /**
-   *
-   * これを有効にするにはFirebaseの設定を変更する必要があります。
-   * Authentication > ログイン方法 > Googleを有効にする
-   */
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-
-  const [userName, setUserName] = useState('')
-  const [avaterImage, setAvaterImage] = useState<File | null>(null)
-
-  const [isLogin, setIsLogin] = useState(true)
 
   const signInEmail = async () => {
     await auth.signInWithEmailAndPassword(email, password)
   }
 
+  const onChangeImageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // これが走る時は必ずfileが存在するので！をつけている
+    if (e.target.files![0]) {
+      setAvaterImage(e.target.files![0])
+      e.target.value = ''
+    }
+  }
+
   const signUpEmail = async () => {
-    await auth.createUserWithEmailAndPassword(email, password)
+    const authUser = await auth.createUserWithEmailAndPassword(email, password)
+    // 画像を保存するときのurl
+    let url = ''
+    if (avaterImage) {
+      const S = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      const N = 16
+      const randomChar = Array.from(crypto.getRandomValues(new Uint32Array(N)))
+        .map(n => S[n % S.length])
+        .join('')
+      const fileName = randomChar + '_' + avaterImage.name
+
+      await storage.ref(`avatars/${fileName}`).put(avaterImage)
+      url = await storage.ref('avatars').child(fileName).getDownloadURL()
+    }
+    await authUser.user?.updateProfile({
+      displayName: userName,
+      photoURL: url,
+    })
+    dispatch(
+      updateUserProfile({
+        displayName: userName,
+        photoUrl: url,
+      }),
+    )
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

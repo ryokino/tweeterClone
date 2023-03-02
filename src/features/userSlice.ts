@@ -1,5 +1,10 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { RootState } from '../app/store'
+
+interface USER {
+  displayName: string
+  photoUrl: string
+}
 
 // userSlice を createSlice で作成
 export const userSlice = createSlice({
@@ -22,11 +27,15 @@ export const userSlice = createSlice({
         displayName: '',
       }
     },
+    updateUserProfile: (state, action: PayloadAction<USER>) => {
+      state.user.displayName = action.payload.displayName
+      state.user.photoUrl = action.payload.photoUrl
+    },
   },
 })
 
 // export login, logout
-export const { login, logout } = userSlice.actions
+export const { login, logout, updateUserProfile } = userSlice.actions
 
 // export selectUser
 export const selectUser = (state: RootState) => state.user.user
