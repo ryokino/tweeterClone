@@ -1,9 +1,14 @@
 import { Avatar } from '@mui/material'
-import React from 'react'
+import React, { useState } from 'react'
 import styles from './Post.module.css'
+import { db } from '../firebase'
+import { useSelector } from 'react-redux'
+import firebase from 'firebase/app'
+import SendIcon from '@mui/icons-material/Send'
+import { selectUser } from '../features/userSlice'
 
 interface PROPS {
-  id: string
+  postId: string
   avatar: string
   image: string
   text: string
@@ -12,7 +17,20 @@ interface PROPS {
 }
 
 const Post = (props: PROPS) => {
-  const { id, avatar, image, text, timestamp, username } = props
+  const user = useSelector(selectUser)
+  const { postId, avatar, image, text, timestamp, username } = props
+  const [comment, setComment] = useState('')
+  const newComment = (e: React.FormEvent<HTMLFormElement>) => {
+    console.log('evoked')
+    e.preventDefault()
+    db.collection('posts').doc(postId).collection('comments').add({
+      avatar: user.photoUrl,
+      text: comment,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      username: user.displayName,
+    })
+    setComment('')
+  }
   return (
     <div className={styles.post}>
       <div className={styles.post_avatar}>
@@ -35,6 +53,25 @@ const Post = (props: PROPS) => {
             <img src={image} alt='tweet' />
           </div>
         )}
+        <form onSubmit={newComment}>
+          <div className={styles.post_form}>
+            <input
+              className={styles.post_input}
+              type='text'
+              placeholder='Type new comment ...'
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+            />
+            <button
+              type='submit'
+              disabled={!comment}
+              className={
+                comment ? styles.post_button : styles.post_buttonDisable
+              }>
+              <SendIcon className={styles.post_sendIcon} />
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

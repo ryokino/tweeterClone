@@ -43,7 +43,7 @@ const Feed = () => {
           {posts.map(post => (
             <Post
               key={post.id}
-              id={post.id}
+              postId={post.id}
               avatar={post.avatar}
               image={post.image}
               text={post.text}
