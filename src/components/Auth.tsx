@@ -5,12 +5,10 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   CssBaseline,
-  FormControlLabel,
   Grid,
   IconButton,
-  Link,
+  Modal,
   Paper,
   TextField,
   Typography,
@@ -19,12 +17,25 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import EmailIcon from '@mui/icons-material/Email'
+import CameraIcon from '@mui/icons-material/Camera'
+import SendIcon from '@mui/icons-material/Send'
 import { auth, provider, storage } from '../firebase'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { updateUserProfile } from '../features/userSlice'
 
 const theme = createTheme()
+
+function getModalStyle() {
+  const top = 50
+  const left = 50
+
+  return {
+    top: `${top}%`,
+    left: `${left}%`,
+    transform: `translate(-${top}%, -${left}%)`,
+  }
+}
 
 const Auth = () => {
   const dispatch = useDispatch()
@@ -33,6 +44,21 @@ const Auth = () => {
   const [username, setUsername] = useState('')
   const [avaterImage, setAvaterImage] = useState<File | null>(null)
   const [isLogin, setIsLogin] = useState(true)
+  const [openModal, setOpenModal] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+
+  const sendResetEmail = async (e: React.MouseEvent<HTMLElement>) => {
+    await auth
+      .sendPasswordResetEmail(resetEmail)
+      .then(() => {
+        setOpenModal(false)
+        setResetEmail('')
+      })
+      .catch(err => {
+        alert(err.message)
+        setResetEmail('')
+      })
+  }
 
   const signInGoogle = async () => {
     await auth.signInWithPopup(provider).catch(err => alert(err.message))
@@ -223,7 +249,11 @@ const Auth = () => {
 
               <Grid container>
                 <Grid item xs>
-                  <span className={styles.login_reset}>Forget password?</span>
+                  <span
+                    className={styles.login_reset}
+                    onClick={() => setOpenModal(true)}>
+                    Forget password?
+                  </span>
                 </Grid>
                 <Grid item>
                   <span
@@ -237,11 +267,34 @@ const Auth = () => {
               <Button
                 onClick={signInGoogle}
                 fullWidth
+                startIcon={<CameraIcon />}
                 variant='contained'
+                color='primary'
                 sx={{ mt: 3, mb: 2 }}>
                 SignIn with Google
               </Button>
             </Box>
+            <Modal open={openModal} onClose={() => setOpenModal(false)}>
+              <div style={getModalStyle()} className=''>
+                <div className={styles.login_modal}>
+                  <TextField
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    type='email'
+                    name='email'
+                    label='Reset Email'
+                    value={resetEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setResetEmail(e.target.value)
+                    }
+                  />
+                  <IconButton onClick={sendResetEmail}>
+                    <SendIcon />
+                  </IconButton>
+                </div>
+              </div>
+            </Modal>
           </Box>
         </Grid>
       </Grid>
