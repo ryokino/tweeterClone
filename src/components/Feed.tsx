@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { auth } from '../firebase'
 import TweetInput from './TweetInput'
 import styles from './Feed.module.css'
 import { db } from '../firebase'
+import Post from './Post'
 
 const Feed = () => {
   const [posts, setPosts] = useState([
@@ -37,11 +37,22 @@ const Feed = () => {
   }, [])
   return (
     <div className={styles.feed}>
-      Feed
       <TweetInput />
-      {posts.map(post => (
-        <h3>{post.id}</h3>
-      ))}
+      {posts[0]?.id && (
+        <>
+          {posts.map(post => (
+            <Post
+              key={post.id}
+              id={post.id}
+              avatar={post.avatar}
+              image={post.image}
+              text={post.text}
+              timestamp={post.timestamp}
+              username={post.username}
+            />
+          ))}
+        </>
+      )}
     </div>
   )
 }

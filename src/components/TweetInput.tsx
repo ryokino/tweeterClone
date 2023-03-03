@@ -113,7 +113,7 @@ const TweetInput = () => {
           className={
             tweetMessage ? styles.tweet_sendBtn : styles.tweet_sendDisableBtn
           }>
-          Twee
+          Tweet
         </Button>
       </form>
     </>
