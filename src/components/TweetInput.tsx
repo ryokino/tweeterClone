@@ -1,4 +1,5 @@
-import { Avatar } from '@mui/material'
+import { Avatar, Button, IconButton } from '@mui/material'
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { selectUser } from '../features/userSlice'
@@ -19,13 +20,13 @@ const TweetInput = () => {
     }
   }
 
-  const sendTweet = async (e: React.MouseEvent<HTMLElement>) => {
+  const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
     // reactでは、defaultの挙動として、formのsubmitボタンを押すと、ページがリロードされる
     // しかし、今回はasync/awaitを使っているので、ページがリロードされると、
     // その後の処理が走らなくなってしまう
     // これを防ぐために、preventDefaultを使う
     e.preventDefault()
-
+    console.log('evoked')
     if (tweetImage) {
       // 画像がある場合
       const S = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -73,15 +74,49 @@ const TweetInput = () => {
   }
 
   return (
-    <div>
-      <Avatar
-        className={styles.tweet_avatar}
-        src={user.photoUrl}
-        onClick={async () => {
-          await auth.signOut()
-        }}
-      />
-    </div>
+    <>
+      <form onSubmit={sendTweet}>
+        <div className={styles.tweet_form}>
+          <Avatar
+            className={styles.tweet_avatar}
+            src={user.photoUrl}
+            onClick={async () => {
+              await auth.signOut()
+            }}
+          />
+          <input
+            className={styles.tweet_input}
+            placeholder="what's happening?"
+            type='text'
+            autoFocus
+            value={tweetMessage}
+            onChange={e => setTweetMessage(e.target.value)}
+          />
+          <IconButton>
+            <label>
+              <AddAPhotoIcon
+                className={
+                  tweetImage ? styles.tweet_addIconLoaded : styles.tweet_addIcon
+                }
+              />
+              <input
+                className={styles.tweet_hiddenIcon}
+                type='file'
+                onChange={onChangeImageHandler}
+              />
+            </label>
+          </IconButton>
+        </div>
+        <Button
+          type='submit'
+          disabled={!tweetMessage}
+          className={
+            tweetMessage ? styles.tweet_sendBtn : styles.tweet_sendDisableBtn
+          }>
+          Twee
+        </Button>
+      </form>
+    </>
   )
 }
 
